@@ -22,7 +22,7 @@ import android.util.Log;
 public class HttpUtil {
     // 创建HttpClient对象
     public static HttpClient httpClient = new DefaultHttpClient();
-    public static final String BASE_URL = "http://10.169.103.30:8080/AppLogin";
+    public static final String BASE_URL = "http://172.20.171.183:8080/";
 
     /**
      *

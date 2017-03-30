@@ -3,19 +3,14 @@ package com.yanlei.mooclike;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-
-import android.os.AsyncTask;
-
-import android.os.Build;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -26,11 +21,13 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.yanlei.service.ConnectIntentService;
+import com.yanlei.Utils.HttpUtil;
+
+import java.util.HashMap;
 
 import static android.Manifest.permission.READ_CONTACTS;
+
 
 /**
  * A login screen that offers login via email/password.
@@ -60,7 +57,8 @@ public class LoginActivity extends AppCompatActivity {
     private View mProgressView;
     private View mLoginFormView;
 
-    private MessageReceiver receiver;
+    private static String username;
+    private static String password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,11 +67,7 @@ public class LoginActivity extends AppCompatActivity {
         // Set up the login form.
         mUserNameView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
-        //动态注册receiver
-        IntentFilter filter = new IntentFilter("ACTION_RECV_MSG");
-        filter.addCategory(Intent.CATEGORY_DEFAULT);
-        receiver = new MessageReceiver();
-        registerReceiver(receiver, filter);
+
 
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -92,6 +86,8 @@ public class LoginActivity extends AppCompatActivity {
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
+                username = mUserNameView.getText().toString().trim();
+                password = mPasswordView.getText().toString().trim();
                 attemptLogin();
             }
         });
@@ -261,24 +257,48 @@ public class LoginActivity extends AppCompatActivity {
 
             try {
                 // network access.
-                Intent msgIntent = new Intent(LoginActivity.this, ConnectIntentService.class);
-                msgIntent.putExtra("username", mUsername.toString().trim());
-                msgIntent.putExtra("password", mPassword.toString().trim());
-                startService(msgIntent);
+                String strFlag = "";
+                String loginFlag = "";
+                String loginCode = "";
+                // 使用Map封装请求参数
+                HashMap<String, String> map = new HashMap<String, String>();
+                map.put("un", username);
+                map.put("pw", password);
+                // 定义发送请求的URL
+                //post方式
+                String url = HttpUtil.BASE_URL+"AppLoginServlet";//+ "?un=" + username + "&pw=" + password;  //GET方式
+
+                Log.d("url", url);
+                Log.d("username", username);
+                Log.d("password", password);
+                try {
+                    // 发送请求
+                    strFlag = HttpUtil.postRequest(url, map);  //POST方式
+                    // strFlag = HttpUtil.getRequest(url);  //GET方式
+                    Log.d("服务器返回值", strFlag);
+                    String[] reArray = strFlag.split("\\|###\\|", 2);
+                    if (reArray.length < 2) {
+
+                    } else {
+                        loginFlag = reArray[0];
+                        loginCode = reArray[1];
+                    }
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+                if (loginFlag.trim().equals("true")) {
+                    // 如果登录成功
+                    return true;
+                } else {
+                    //登录失败
+                    return false;
+                }
             } catch (Exception e) {
                 return false;
-            }
 
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mUsername)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
             }
-
-            // TODO: register the new account here.
-            return true;
         }
 
         @Override
@@ -287,6 +307,13 @@ public class LoginActivity extends AppCompatActivity {
             showProgress(false);
 
             if (success) {
+                // 跳转到 HomeActivity
+                Intent nextIntent = new Intent(LoginActivity.this, HomeActivity.class);
+                startActivity(nextIntent);
+                // 结束该Activity
+                finish();
+            }else{
+                //Toast.makeText(LoginActivity.this, "用户名或密码错误，请重新输入!", Toast.LENGTH_SHORT).show();
                 mUserNameView.setError(getString(R.string.error_incorrect_username_or_password));
                 mPasswordView.setError(getString(R.string.error_incorrect_username_or_password));
                 mPasswordView.requestFocus();
@@ -298,31 +325,6 @@ public class LoginActivity extends AppCompatActivity {
         protected void onCancelled() {
             mAuthTask = null;
             showProgress(false);
-        }
-    }
-    //接收广播类
-    public class MessageReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String message = intent.getStringExtra("result");
-            //登录失败类型，备用
-            String resultCode = intent.getStringExtra("resultCode");
-            Log.i("MessageReceiver", message);
-            // 如果登录成功
-            if (message.equals("true")) {
-                // 启动Main Activity
-                Intent nextIntent = new Intent(LoginActivity.this, HomeActivity.class);
-                startActivity(nextIntent);
-                // 结束该Activity
-                finish();
-                //注销广播接收器
-                context.unregisterReceiver(this);
-            } else {
-                mAuthTask = null;
-                showProgress(false);
-                Toast.makeText(LoginActivity.this, "用户名或密码错误，请重新输入!", Toast.LENGTH_SHORT).show();
-            }
-
         }
     }
 }
