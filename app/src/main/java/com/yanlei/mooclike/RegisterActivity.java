@@ -62,15 +62,17 @@ public class RegisterActivity extends AppCompatActivity {
                 String phone = rPhone.getText().toString().trim();
                 String local = rLocal.getText().toString().trim();
                 String email = rEmail.getText().toString().trim();
-                if (!userName.trim().equals("") && !password1.trim().equals("") && !name.trim().equals("") &&
-                        !sex.trim().equals("") && !phone.trim().equals("") && !local.trim().equals("") &&
-                        !email.trim().equals("")) {
+                if (userName.trim().equals("") || password1.trim().equals("") || name.trim().equals("") ||
+                        sex.trim().equals("") || phone.trim().equals("") || local.trim().equals("") ||
+                        email.trim().equals("")) {
                      Toast.makeText(RegisterActivity.this, "请完善个人信息!", Toast.LENGTH_SHORT).show();
-                } else if (password1.equals(password2)) {
+                } else if(password1.length()<6){
+                     Toast.makeText(RegisterActivity.this, "密码长度必须大于6!", Toast.LENGTH_SHORT).show();
+                }else if (!password1.equals(password2)) {
+                    Toast.makeText(RegisterActivity.this, "两次输入密码不一致!", Toast.LENGTH_SHORT).show();
+                } else{
                     mAuthTask = new UserRegisterTask(userName, password1, name, sex, phone, local, email);
                     mAuthTask.execute((Void) null);
-                } else {
-                    Toast.makeText(RegisterActivity.this, "两次输入密码不一致!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
