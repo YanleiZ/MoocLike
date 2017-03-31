@@ -76,6 +76,15 @@ public class RegisterActivity extends AppCompatActivity {
                 }
             }
         });
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent nextIntent = new Intent(RegisterActivity.this, LoginActivity.class);
+                startActivity(nextIntent);
+                // 结束该Activity
+                finish();
+            }
+        });
     }
 
     public class UserRegisterTask extends AsyncTask<Void, Void, Boolean> {

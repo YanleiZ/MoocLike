@@ -1,4 +1,10 @@
 package com.yanlei.Utils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +21,7 @@ import org.apache.http.util.EntityUtils;
 
 import android.content.Entity;
 import android.util.Log;
+
 /**
  * Created by Yanlei on 2017/3/29.
  */
@@ -23,11 +30,10 @@ public class HttpUtil {
     // 创建HttpClient对象
     public static HttpClient httpClient = new DefaultHttpClient();
     public static final String BASE_URL = "http://172.20.171.183:8080/";
+    public static final String REAL_NAME = "REALNAME";
 
     /**
-     *
-     * @param url
-     *            发送请求的URL
+     * @param url 发送请求的URL
      * @return 服务器响应字符串
      * @throws Exception
      */
@@ -49,10 +55,8 @@ public class HttpUtil {
     }
 
     /**
-     *
-     * @param url
-     *            发送请求的URL
-     * params
+     * @param url 发送请求的URL
+     *            params
      *            请求参数
      * @return 服务器响应字符串
      * @throws Exception
@@ -78,5 +82,26 @@ public class HttpUtil {
             return result;
         }
         return null;
+    }
+
+    /**
+     * 获取网络图片
+     */
+    public static byte[] getImage(String path) throws IOException {
+        URL url = new URL(path);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");   //设置请求方法为GET
+        conn.setReadTimeout(5 * 1000);    //设置请求过时时间为5秒
+        InputStream inputStream = conn.getInputStream();   //通过输入流获得图片数据
+
+        byte[] buffer = new byte[1024];
+        int len = 0;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        while ((len = inputStream.read(buffer)) != -1) {
+            bos.write(buffer, 0, len);
+        }
+        bos.close();
+        byte[] data = bos.toByteArray();     //获得图片的二进制数据
+        return data;
     }
 }

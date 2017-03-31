@@ -5,15 +5,27 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.yanlei.Utils.HttpUtil;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.yanlei.Utils.HttpUtil.BASE_URL;
+import static com.yanlei.Utils.HttpUtil.REAL_NAME;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -22,44 +34,129 @@ public class HomeActivity extends AppCompatActivity {
     private Context mContext;
     private MovieAdapter mAdapter = null;
     private ListView list_movie;
+    private LinearLayout progressBar;
+    private LinearLayout load_fail;
+
+    private List<String> realNameList = new ArrayList<String>();
+
+    private LoadVideoListTask mAuthTask = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         mContext = HomeActivity.this;
+        progressBar = (LinearLayout) findViewById(R.id.progressBar);
+        load_fail = (LinearLayout) findViewById(R.id.loadFail);
         list_movie = (ListView) findViewById(R.id.listView);
         mData = new LinkedList<Movie>();
-        Resources res= getResources();
-        Bitmap bm1 = BitmapFactory.decodeResource(getResources(),R.drawable.splash1);
+        Resources res = getResources();
+        mAuthTask = new LoadVideoListTask();
+        mAuthTask.execute((Void) null);
 
-        mData.add(new Movie(bm1,"第一课 概论", "叫兽：侯成"));
-        mData.add(new Movie(bm1,"第二课 电商的历史", "讲师：侯成"));
-        mData.add(new Movie(bm1,"第三课 电商的发展", "侯成"));
-        mData.add(new Movie(bm1,"第四课 电商模式", "侯成"));
-        mData.add(new Movie(bm1,"第五课 未来电商", "侯成"));
-        mData.add(new Movie(bm1,"第六课 电商创业", "侯成"));
-        mData.add(new Movie(bm1,"第七课 期中复习", "侯成?"));
-        mData.add(new Movie(bm1,"第八课 电子商务", "侯成?"));
-        mData.add(new Movie(bm1,"第九课 电商", "侯成"));
-        mData.add(new Movie(bm1,"第十课 淘宝的经营模式", "侯成?"));
-        mData.add(new Movie(bm1,"第十一课 京东模式", "侯成?"));
-        mData.add(new Movie(bm1,"第十二课 当当、亚马逊", "侯成?"));
-        mData.add(new Movie(bm1,"第十三课 期末复习", "侯成?"));
-        mData.add(new Movie(bm1,"第十四课 期末复习二", "侯成?"));
-        mData.add(new Movie(bm1,"第十五课 期末复习三", "侯成?"));
-        mAdapter = new MovieAdapter((LinkedList<Movie>) mData, mContext);
-        list_movie.setAdapter(mAdapter);
         list_movie.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent mainIntent = new Intent(HomeActivity.this, MainActivity.class);
-                HomeActivity.this.startActivity(mainIntent);
-                Toast.makeText(HomeActivity.this,"你点击的是第"+i+"个Item。",Toast.LENGTH_SHORT).show();
+                if(realNameList.size()>0){
+                    mainIntent.putExtra(REAL_NAME,realNameList.get(i));
+                    HomeActivity.this.startActivity(mainIntent);
+                }else{
+                    Toast.makeText(HomeActivity.this, "出现错误！请退出后重新登录！", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
     }
 
+    public class LoadVideoListTask extends AsyncTask<Void, Void, Boolean> {
+        JSONArray videoJsonArray = null;
+        List<Bitmap> bitmaps = new ArrayList<Bitmap>();
+
+        LoadVideoListTask() {
+
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            // TODO: attempt authentication against a network service.
+
+            try {
+                // network access.
+                String videosJson = "";
+                String loginFlag = "";
+
+                // 定义发送请求的URL
+                String url = BASE_URL + "AppGetVideoServlet?method=get";
+                Log.d("url", url);
+                try {
+                    // 发送请求
+                    videosJson = HttpUtil.getRequest(url);  //get方式
+
+                    Log.d("服务器返回值", videosJson);
+                    if (videosJson == null) {
+                        return false;
+                    }
+                    videoJsonArray = new JSONArray(videosJson);
+                    for (int i = 0; i < videoJsonArray.length(); i++) {
+                        JSONObject videoObject = videoJsonArray.getJSONObject(i);
+                        Log.i("=====", videoObject.toString());
+                        try {
+                            String urlPathContent = BASE_URL + "upload_image/" + videoObject.getString("img").toString();
+                            Log.i("+++++图片地址：", urlPathContent);
+                            byte[] data = HttpUtil.getImage(urlPathContent);
+                            bitmaps.add(BitmapFactory.decodeByteArray(data, 0, data.length));  //生成位图
+                        } catch (Exception e) {
+                            Log.i("+++++++获取图片错误：",e.toString());
+                        }
+                        //将视频的Url保存到一个列表里
+                        realNameList.add(videoObject.getString("docts").toString());
+
+                    }
+                    return true;
+
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+                return false;
+
+
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            JSONObject videoInfo = null;
+            progressBar.setVisibility(View.GONE);
+            if (success) {
+                //Bitmap bm1 = BitmapFactory.decodeResource(getResources(), R.drawable.splash1);
+                for (int i = 0; i < videoJsonArray.length(); i++) {
+                    try {
+                        videoInfo = videoJsonArray.getJSONObject(i);
+                        if (bitmaps.size() > 0) {
+                            mData.add(new Movie(bitmaps.get(i), videoInfo.getString("name").toString(), videoInfo.getString("descp").toString()));
+                        }
+                    } catch (Exception e) {
+                        Log.i("===========获取json对象错误！", e.toString());
+                    }
+
+                }
+                mAdapter = new MovieAdapter((LinkedList<Movie>) mData, mContext);
+                list_movie.setAdapter(mAdapter);
+                list_movie.setVisibility(View.VISIBLE);
+            } else {
+                load_fail.setVisibility(View.VISIBLE);
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+
+        }
+    }
 
 }

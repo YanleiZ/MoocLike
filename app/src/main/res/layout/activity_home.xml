@@ -2,14 +2,56 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/logo"
     android:orientation="horizontal">
 
-        <ListView
-            android:id="@+id/listView"
+    <LinearLayout
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#e1dfdfdf"
+        android:backgroundTintMode="add"
+        android:clickable="true"
+        android:gravity="center"
+        android:orientation="vertical">
+        <ProgressBar
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent" />
+    </LinearLayout>
 
-        </ListView>
+    <LinearLayout
+        android:id="@+id/loadFail"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#e1dfdfdf"
+        android:backgroundTintMode="add"
+        android:clickable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="加载失败"
+            android:textColor="#000"
+            android:textSize="60px" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="点击屏幕重新加载"
+            android:textSize="35px" />
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+    </ListView>
 
 
 </LinearLayout>
