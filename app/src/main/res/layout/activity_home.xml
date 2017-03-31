@@ -14,6 +14,7 @@
         android:clickable="true"
         android:gravity="center"
         android:orientation="vertical">
+
         <ProgressBar
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
@@ -45,13 +46,27 @@
 
     </LinearLayout>
 
-    <ListView
-        android:id="@+id/listView"
+    <LinearLayout
+        android:id="@+id/listviewlinerlayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         android:visibility="gone">
 
-    </ListView>
+        <com.bigkoo.convenientbanner.ConvenientBanner
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/convenientBanner"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            app:canLoop="true"
+        />
 
+        <ListView
+            android:id="@+id/listView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        </ListView>
+    </LinearLayout>
 
 </LinearLayout>
