@@ -1,4 +1,4 @@
-package com.yanlei.mooclike;
+package com.yanlei.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,6 +7,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.yanlei.models.Movie;
+import com.yanlei.mooclike.R;
 
 import java.util.LinkedList;
 

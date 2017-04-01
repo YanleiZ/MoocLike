@@ -1,4 +1,4 @@
-package com.yanlei.mooclike;
+package com.yanlei.models;
 
 import android.graphics.Bitmap;
 

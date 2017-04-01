@@ -6,8 +6,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
@@ -18,6 +21,9 @@ import com.bigkoo.convenientbanner.ConvenientBanner;
 import com.bigkoo.convenientbanner.holder.CBViewHolderCreator;
 import com.bigkoo.convenientbanner.listener.OnItemClickListener;
 import com.yanlei.Utils.HttpUtil;
+import com.yanlei.adapter.MovieAdapter;
+import com.yanlei.holder.LocalImageHolderView;
+import com.yanlei.models.Movie;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -199,6 +205,34 @@ public class HomeActivity extends AppCompatActivity implements OnItemClickListen
      */
     @Override
     public void onItemClick(int position) {
+        
         Toast.makeText(HomeActivity.this, "你点击了第"+ position, Toast.LENGTH_SHORT).show();
+    }
+
+    // 定义一个变量，来标识是否退出
+    private static boolean isExit = false;
+    Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            isExit = false;
+        }
+    };
+
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (!isExit) {
+                isExit = true;
+                Toast.makeText(getApplicationContext(), "再按一次退出程序",
+                        Toast.LENGTH_SHORT).show();
+                // 利用handler延迟发送更改状态信息
+                mHandler.sendEmptyMessageDelayed(0, 2000);
+            } else {
+                //System.exit(0);
+                finish();
+            }
+            return false;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }
