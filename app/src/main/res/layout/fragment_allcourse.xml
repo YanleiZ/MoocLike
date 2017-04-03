@@ -1,0 +1,32 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#851f313e"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/loadFail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="加载失败"
+        android:textColor="#000"
+        android:textSize="60px"
+        android:visibility="gone"/>
+    <TextView
+        android:id="@+id/loading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="加载中..."
+        android:textStyle="bold"
+        android:textSize="80px"
+        android:gravity="center"/>
+
+    <ListView
+        android:id="@+id/allcourselistView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone">
+
+    </ListView>
+</LinearLayout>

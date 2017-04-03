@@ -1,238 +1,96 @@
 package com.yanlei.mooclike;
 
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
 
-import com.bigkoo.convenientbanner.ConvenientBanner;
-import com.bigkoo.convenientbanner.holder.CBViewHolderCreator;
-import com.bigkoo.convenientbanner.listener.OnItemClickListener;
-import com.yanlei.Utils.HttpUtil;
-import com.yanlei.adapter.MovieAdapter;
-import com.yanlei.holder.LocalImageHolderView;
-import com.yanlei.models.Movie;
+import com.yanlei.adapter.MyFragmentPagerAdapter;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+public class HomeActivity extends AppCompatActivity implements RadioGroup.OnCheckedChangeListener,
+        ViewPager.OnPageChangeListener {
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+    //UI Objects
+    private RadioGroup rg_tab_bar;
+    private RadioButton rb_message;
+    private RadioButton rb_better;
+    private RadioButton rb_setting;
+    private ViewPager vpager;
 
-import static com.yanlei.Utils.HttpUtil.BASE_URL;
-import static com.yanlei.Utils.HttpUtil.REAL_NAME;
+    private MyFragmentPagerAdapter mAdapter;
 
-public class HomeActivity extends AppCompatActivity implements OnItemClickListener {
-
-
-    private List<Movie> mData = null;
-    private Context mContext;
-    private MovieAdapter mAdapter = null;
-    private ListView list_movie;
-    private LinearLayout progressBar;
-    private LinearLayout load_fail;
-    private LinearLayout listview_linerlayout;
-    private ConvenientBanner convenientBanner;
-
-    private List<String> realNameList = new ArrayList<String>();
-
-    private LoadVideoListTask mAuthTask = null;
-
-    private ArrayList<Integer> localImages = new ArrayList<Integer>();
+    //几个代表页面的常量
+    public static final int PAGE_ONE = 0;
+    public static final int PAGE_TWO = 1;
+    public static final int PAGE_THREE = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        mContext = HomeActivity.this;
-        progressBar = (LinearLayout) findViewById(R.id.progressBar);
-        load_fail = (LinearLayout) findViewById(R.id.loadFail);
-        listview_linerlayout = (LinearLayout) findViewById(R.id.listviewlinerlayout);
-        list_movie = (ListView) findViewById(R.id.listView);
-        convenientBanner = (ConvenientBanner) findViewById(R.id.convenientBanner);
-        mData = new LinkedList<Movie>();
-
-        mAuthTask = new LoadVideoListTask();
-        mAuthTask.execute((Void) null);
-
-        list_movie.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent mainIntent = new Intent(HomeActivity.this, MainActivity.class);
-                if (realNameList.size() > 0) {
-                    mainIntent.putExtra(REAL_NAME, realNameList.get(i));
-                    HomeActivity.this.startActivity(mainIntent);
-                } else {
-                    Toast.makeText(HomeActivity.this, "出现错误！请退出后重新登录！", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        Bitmap bitmap1 = BitmapFactory.decodeResource(getResources(), R.drawable.ic_page_indicator_focused);
-        Bitmap bitmap2 = BitmapFactory.decodeResource(getResources(), R.drawable.ic_page_indicator);
-
-        localImages.add(R.drawable.splash1);
-        localImages.add(R.drawable.dianzishangwugailun);
-        localImages.add(R.drawable.dianzishangwugailun2);
-        //自定义你的Holder，实现更多复杂的界面，不一定是图片翻页，其他任何控件翻页亦可。
-        convenientBanner.setPages(
-                new CBViewHolderCreator<LocalImageHolderView>() {
-                    @Override
-                    public LocalImageHolderView createHolder() {
-                        return new LocalImageHolderView();
-                    }
-                }, localImages)
-                //设置两个点图片作为翻页指示器，不设置则没有指示器，可以根据自己需求自行配合自己的指示器,不需要圆点指示器可用不设
-                .setPageIndicator(new int[]{R.drawable.ic_page_indicator, R.drawable.ic_page_indicator_focused})
-                //设置指示器的方向
-                .setManualPageable(true);
-        convenientBanner.startTurning(2500);
-        //convenientBanner.setcurrentitem(2000);
-        convenientBanner.setCanLoop(true);
-        convenientBanner.setOnItemClickListener(this);
-        //.setPageIndicatorAlign(ConvenientBanner.PageIndicatorAlign.ALIGN_PARENT_RIGHT)
-        //convenientBanner.setOnPageChangeListener(this);//监听翻页事件
-
-
+        bindViews();
+        rb_message.setChecked(true);
+        //让ViewPager多缓存一个页面，当显示第三个页面的时候不销毁第一个
+        vpager.setOffscreenPageLimit(2);
     }
 
-    public class LoadVideoListTask extends AsyncTask<Void, Void, Boolean> {
-        JSONArray videoJsonArray = null;
-        List<Bitmap> bitmaps = new ArrayList<Bitmap>();
+    private void bindViews() {
+        rg_tab_bar = (RadioGroup) findViewById(R.id.rg_tab_bar);
+        rb_message = (RadioButton) findViewById(R.id.rb_message);
+        rb_better = (RadioButton) findViewById(R.id.rb_better);
+        rb_setting = (RadioButton) findViewById(R.id.rb_setting);
+        rg_tab_bar.setOnCheckedChangeListener(this);
 
-        LoadVideoListTask() {
-
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-
-            try {
-                // network access.
-                String videosJson = "";
-                String loginFlag = "";
-
-                // 定义发送请求的URL
-                String url = BASE_URL + "AppGetVideoServlet?method=get";
-                Log.d("url", url);
-                try {
-                    // 发送请求
-                    videosJson = HttpUtil.getRequest(url);  //get方式
-
-                    Log.d("服务器返回值", videosJson);
-                    if (videosJson == null) {
-                        return false;
-                    }
-                    videoJsonArray = new JSONArray(videosJson);
-                    for (int i = 0; i < videoJsonArray.length(); i++) {
-                        JSONObject videoObject = videoJsonArray.getJSONObject(i);
-                        Log.i("=====", videoObject.toString());
-                        try {
-                            String urlPathContent = BASE_URL + "upload_image/" + videoObject.getString("img").toString();
-                            Log.i("+++++图片地址：", urlPathContent);
-                            byte[] data = HttpUtil.getImage(urlPathContent);
-                            bitmaps.add(BitmapFactory.decodeByteArray(data, 0, data.length));  //生成位图
-                        } catch (Exception e) {
-                            Log.i("+++++++获取图片错误：", e.toString());
-                        }
-                        //将视频的Url保存到一个列表里
-                        realNameList.add(videoObject.getString("docts").toString());
-
-                    }
-                    return true;
-
-                } catch (Exception e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-                return false;
-
-
-            } catch (Exception e) {
-                return false;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            JSONObject videoInfo = null;
-            progressBar.setVisibility(View.GONE);
-            if (success) {
-                //Bitmap bm1 = BitmapFactory.decodeResource(getResources(), R.drawable.splash1);
-                for (int i = 0; i < videoJsonArray.length(); i++) {
-                    try {
-                        videoInfo = videoJsonArray.getJSONObject(i);
-                        if (bitmaps.size() > 0) {
-                            mData.add(new Movie(bitmaps.get(i), videoInfo.getString("name").toString(), videoInfo.getString("descp").toString()));
-                        }
-                    } catch (Exception e) {
-                        Log.i("===========获取json对象错误！", e.toString());
-                    }
-
-                }
-                mAdapter = new MovieAdapter((LinkedList<Movie>) mData, mContext);
-                list_movie.setAdapter(mAdapter);
-                listview_linerlayout.setVisibility(View.VISIBLE);
-            } else {
-                load_fail.setVisibility(View.VISIBLE);
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-
-        }
+        mAdapter = new MyFragmentPagerAdapter(getSupportFragmentManager());
+        vpager = (ViewPager) findViewById(R.id.vpager);
+        vpager.setAdapter(mAdapter);
+        vpager.setCurrentItem(0);
+        vpager.addOnPageChangeListener(this);
     }
 
-    /**
-     * 轮播组件的点击事件
-     *
-     * @param position
-     */
+
+    //重写ViewPager页面切换的处理方法
     @Override
-    public void onItemClick(int position) {
-        
-        Toast.makeText(HomeActivity.this, "你点击了第"+ position, Toast.LENGTH_SHORT).show();
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
     }
 
-    // 定义一个变量，来标识是否退出
-    private static boolean isExit = false;
-    Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            isExit = false;
-        }
-    };
+    @Override
+    public void onPageSelected(int position) {
+    }
 
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (!isExit) {
-                isExit = true;
-                Toast.makeText(getApplicationContext(), "再按一次退出程序",
-                        Toast.LENGTH_SHORT).show();
-                // 利用handler延迟发送更改状态信息
-                mHandler.sendEmptyMessageDelayed(0, 2000);
-            } else {
-                //System.exit(0);
-                finish();
+    @Override
+    public void onPageScrollStateChanged(int state) {
+        //state的状态有三个，0表示什么都没做，1正在滑动，2滑动完毕
+        if (state == 2) {
+            switch (vpager.getCurrentItem()) {
+                case PAGE_ONE:
+                    rb_message.setChecked(true);
+                    break;
+                case PAGE_TWO:
+                    rb_better.setChecked(true);
+                    break;
+                case PAGE_THREE:
+                    rb_setting.setChecked(true);
+                    break;
             }
-            return false;
         }
-        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public void onCheckedChanged(RadioGroup radioGroup, int i) {
+        switch (i) {
+            case R.id.rb_message:
+                vpager.setCurrentItem(PAGE_ONE);
+                break;
+            case R.id.rb_better:
+                vpager.setCurrentItem(PAGE_TWO);
+                break;
+            case R.id.rb_setting:
+                vpager.setCurrentItem(PAGE_THREE);
+                break;
+        }
+
     }
 }
