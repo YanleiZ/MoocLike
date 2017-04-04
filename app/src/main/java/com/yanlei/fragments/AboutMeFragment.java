@@ -2,6 +2,7 @@ package com.yanlei.fragments;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
@@ -36,9 +38,10 @@ public class AboutMeFragment extends Fragment {
         ArrayList<Map<String, Object>> array = new ArrayList<Map<String, Object>>();
         Map<String, Object> map1 = new HashMap<String, Object>();
 
-        map1.put("about", "关于");
+        map1.put("user", "关于");
         map1.put("value", R.mipmap.ic_launcher);
         array.add(map1);
+        map1 = new HashMap<String, Object>();
         map1.put("user", "更换背景");
         map1.put("value", R.mipmap.ic_launcher);
         array.add(map1);
@@ -53,6 +56,9 @@ public class AboutMeFragment extends Fragment {
                 if (i == 0) {
                     Intent mainIntent = new Intent(getActivity(), AboutMeActivity.class);
                     getActivity().startActivity(mainIntent);
+                } else if (i == 1) {
+                    RelativeLayout relativeLayout = (RelativeLayout) getActivity().findViewById(R.id.homeLayout);
+                    relativeLayout.setBackgroundResource(R.drawable.splash1);
                 }
             }
         });
