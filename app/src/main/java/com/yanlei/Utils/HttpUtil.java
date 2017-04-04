@@ -31,6 +31,7 @@ public class HttpUtil {
     public static HttpClient httpClient = new DefaultHttpClient();
     public static final String BASE_URL = "http://192.168.1.109:8080/";
     public static final String REAL_NAME = "REALNAME";
+    public static final String NEWS_URL = "NEWSURL";
 
     /**
      * @param url 发送请求的URL

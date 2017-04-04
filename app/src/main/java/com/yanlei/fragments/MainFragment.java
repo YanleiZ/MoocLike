@@ -25,6 +25,7 @@ import com.yanlei.adapter.MovieAdapter;
 import com.yanlei.holder.LocalImageHolderView;
 import com.yanlei.models.Movie;
 import com.yanlei.mooclike.MainActivity;
+import com.yanlei.mooclike.NewsActivity;
 import com.yanlei.mooclike.R;
 
 import org.json.JSONArray;
@@ -48,7 +49,9 @@ public class MainFragment extends Fragment implements OnItemClickListener {
     private ConvenientBanner convenientBanner;
     View view = null;
 
-    private List<String> realNameList = new ArrayList<String>();
+    private List<String> realNameList ;
+
+    private List<String> newsUrlList;
 
     private LoadVideoListTask mAuthTask = null;
 
@@ -85,9 +88,9 @@ public class MainFragment extends Fragment implements OnItemClickListener {
                 }
             });
             localImages = new ArrayList<Integer>();
-            localImages.add(R.drawable.splash1);
-            localImages.add(R.drawable.dianzishangwugailun);
-            localImages.add(R.drawable.dianzishangwugailun2);
+            localImages.add(R.mipmap.show1);
+            localImages.add(R.mipmap.show2);
+            localImages.add(R.mipmap.show3);
             //自定义你的Holder，实现更多复杂的界面，不一定是图片翻页，其他任何控件翻页亦可。
             convenientBanner.setPages(
                     new CBViewHolderCreator<LocalImageHolderView>() {
@@ -106,17 +109,27 @@ public class MainFragment extends Fragment implements OnItemClickListener {
         }
         return view;
     }
-public void init(){
-    mContext = view.getContext();
-    load_fail1 = (TextView) view.findViewById(R.id.loadFail1);
-    load_fail2 = (TextView) view.findViewById(R.id.loadFail2);
-    progressBarText = (TextView) view.findViewById(R.id.progressBarText);
-    list_movie = (ListView) view.findViewById(R.id.listView);
-    convenientBanner = (ConvenientBanner) view.findViewById(R.id.convenientBanner);
-}
+
+    public void init() {
+        mContext = view.getContext();
+        load_fail1 = (TextView) view.findViewById(R.id.loadFail1);
+        load_fail2 = (TextView) view.findViewById(R.id.loadFail2);
+        progressBarText = (TextView) view.findViewById(R.id.progressBarText);
+        list_movie = (ListView) view.findViewById(R.id.listView);
+        convenientBanner = (ConvenientBanner) view.findViewById(R.id.convenientBanner);
+    }
+
     @Override
     public void onItemClick(int position) {
 
+        Intent mainIntent = new Intent(view.getContext(), NewsActivity.class);
+        if (newsUrlList.size() > 0) {
+            mainIntent.putExtra(HttpUtil.NEWS_URL, newsUrlList.get(position));
+            view.getContext().startActivity(mainIntent);
+        } else {
+            Toast.makeText(view.getContext(), "出现错误！请退出后重新登录！", Toast.LENGTH_SHORT).show();
+        }
+        Log.i("===========","ssssssssssssssss");
     }
 
     public class LoadVideoListTask extends AsyncTask<Void, Void, Boolean> {
@@ -147,6 +160,7 @@ public void init(){
                     if (videosJson == null) {
                         return false;
                     }
+                    realNameList = new ArrayList<String>();
                     videoJsonArray = new JSONArray(videosJson);
                     for (int i = 0; i < videoJsonArray.length(); i++) {
                         JSONObject videoObject = videoJsonArray.getJSONObject(i);
@@ -164,6 +178,11 @@ public void init(){
 
                     }
                     mData = new LinkedList<Movie>();
+                    newsUrlList = new ArrayList<String>();
+                    newsUrlList.add("http://baike.baidu.com/link?url=YrsH8U8yZjxZmiOjqId1x2pwnbRRnVvn1OaQf23yk0q6GYcc6abxvpFC5Y3VSxuWTX9U6ZPG9DFOU6VBxQbH0nsBDSb-YvWSdCk1yZ-VF_yS_m-xBLX6hOTe7e9Z0-8HTsgFubL7O0qOwXcQTKti5Jg3ySXBHlavIBTVUTsXdJcsJgNi--zc8qN0zSDqwGR7uPSBmmT-ygc8SYjuDt9cpujwGxlPD5MDyz1Yti4deq3");
+                    newsUrlList.add("http://baike.baidu.com/link?url=YrsH8U8yZjxZmiOjqId1x2pwnbRRnVvn1OaQf23yk0q6GYcc6abxvpFC5Y3VSxuWTX9U6ZPG9DFOU6VBxQbH0nsBDSb-YvWSdCk1yZ-VF_yS_m-xBLX6hOTe7e9Z0-8HTsgFubL7O0qOwXcQTKti5Jg3ySXBHlavIBTVUTsXdJcsJgNi--zc8qN0zSDqwGR7uPSBmmT-ygc8SYjuDt9cpujwGxlPD5MDyz1Yti4deq3");
+                    newsUrlList.add("https://www.baidu.com/");
+
                     return true;
 
                 } catch (Exception e) {

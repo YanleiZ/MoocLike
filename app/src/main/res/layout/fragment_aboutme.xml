@@ -4,18 +4,10 @@
     android:layout_height="match_parent"
     android:background="#851f313e"
     android:orientation="vertical">
-<TextView
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:text="该软件是本小胖同学的毕业设计"
-    android:gravity="center"
-    android:textColor="#e6ff00"
-    android:textSize="90px"/>
 
     <ListView
         android:id="@+id/aboutMe"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone">
+        android:layout_height="wrap_content">
     </ListView>
 </LinearLayout>
